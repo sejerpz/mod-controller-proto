@@ -185,17 +185,23 @@
 //HOST action: deletes indicated pedalboard
 #define CMD_PEDALBOARD_DELETE         "pbd %i %i"
 
-// builder pedalboard effects <up/down page> <current page index>
-//response: `new effect list, with updated items`
+// builder pedalboard plugins <up/down page> <current page index>
+//response: `new plugins list, with updated items`
 //HMI action: -
-//HOST action:  returns a new page of pedalboard effects
-#define CMD_BUILDER_EFFECTS           "beg %i %i"
+//HOST action:  returns a new page of pedalboard plugins
+#define CMD_BUILDER_PLUGINS           "bpg %i %i"
 
 // builder next control page <plugin_instance_id> <prop bitmask> <page index id>
 //response: `a %i %s %i %s %f %f %f %i %i ...`
 //HMI action: -
 //HOST action: sends back a control_add command with new control page data
-#define CMD_BUILDER_CONTROL_PAGE      "bncp %i %i %i"
+#define CMD_BUILDER_CONTROL_PAGE      "bncp %s %i %i"
+
+// control_set <hw_id><value>
+//response: `r 0`
+//HMI action: sends assigned control data
+//HOST action: sends assigned control data
+#define CMD_BUILDER_CONTROL_SET        "bcs %i %f"
 
 // reorder the snapshot within a pedalboard <snapshot_to_move_uid> <index_to_move_to>
 //response: -
