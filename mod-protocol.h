@@ -185,24 +185,6 @@
 //HOST action: deletes indicated pedalboard
 #define CMD_PEDALBOARD_DELETE         "pbd %i %i"
 
-// builder pedalboard plugins <up/down page> <current page index>
-//response: `new plugins list, with updated items`
-//HMI action: -
-//HOST action:  returns a new page of pedalboard plugins
-#define CMD_BUILDER_PLUGINS           "bpg %i %i"
-
-// builder next control page <plugin_instance_id> <prop bitmask> <page index id>
-//response: `a %i %s %i %s %f %f %f %i %i ...`
-//HMI action: -
-//HOST action: sends back a control_add command with new control page data
-#define CMD_BUILDER_CONTROL_PAGE      "bncp %s %i %i"
-
-// control_set <hw_id><value>
-//response: `r 0`
-//HMI action: sends assigned control data
-//HOST action: sends assigned control data
-#define CMD_BUILDER_CONTROL_SET        "bcs %i %f"
-
 // reorder the snapshot within a pedalboard <snapshot_to_move_uid> <index_to_move_to>
 //response: -
 //HMI action: -
@@ -433,6 +415,27 @@ Almost all menu items are also setable via the MENU_ITEM_CHANGE command, but som
 //HMI action: turn on scrolling through a selection of pages
 //HOST action: -
 #define CMD_DWARF_PAGES_AVAILABLE     "pa %i %i %i %i %i %i %i %i"
+
+// builder pedalboard plugins <up/down page> <current page index>
+//response: `new plugins list, with updated items`
+//HMI action: -
+//HOST action:  returns a new page of pedalboard plugins
+#define CMD_DWARF_BUILDER_PLUGINS           "bp %i %i"
+
+// builder get # control from start to count 
+// <plugin_instance_id>: instance id of the plugin in the pedalboard
+// <constrol start index>: first index to get
+// <control count>: number of controls to get
+// response: `r 1 <number of controls>`
+//HMI action: -
+//HOST action: sends back a control_add command with new control data
+#define CMD_DWARF_BUILDER_CONTROLS      "bc %s %i %i"
+
+// control_set <hw_id><value>
+//response: `r 0`
+//HMI action: sends assigned control data
+//HOST action: sends assigned control data
+#define CMD_DWARF_BUILDER_CONTROL_SET        "bcs %i %f"
 
 /*
 ********************************
