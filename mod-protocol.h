@@ -437,6 +437,15 @@ Almost all menu items are also setable via the MENU_ITEM_CHANGE command, but som
 //HOST action: sends assigned control data
 #define CMD_DWARF_BUILDER_CONTROL_SET        "bcs %i %f"
 
+
+// next_control_page <hw_id> <prop bitmask> <current page index id>
+//response: `r 1...`
+//HMI action: get next control page data (e.g. options or presets)
+//HOST action: sends aa list of options relevant to the current page index and
+//             and the prop bitmask (e.g. page next / page prev)
+#define CMD_DWARF_BUILDER_CONTROL_PAGE        "bncp %i %i %i"
+
+
 /*
 ********************************
     Selftest Specific commands

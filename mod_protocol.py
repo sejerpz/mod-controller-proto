@@ -18,7 +18,7 @@ CMD_ARGS = {
         'g': [int],
         's': [int,float],
         'ncp': [int,int,int],
-        'is': [int,int,int,int,int,int,],
+        'is': [int,int,int,int,int,int,str,str,],
         'b': [int,int],
         'bn': [str,],
         'bd': [int],
@@ -111,6 +111,11 @@ CMD_ARGS = {
     'DWARF': {
         'cs': [int,int],
         'pa': [int,int,int,int,int,int,int,int],
+        'bp': [int,int],
+        'bc': [int,int,int],
+        'bcs': [int, float],
+        'bncp': [int,int,int],
+        'log': [str]
     },
 }
 
@@ -215,6 +220,11 @@ CMD_DUOX_SET_CONTRAST             = 's_contrast'
 CMD_DUOX_EXP_OVERCURRENT          = 'exp_overcurrent'
 CMD_DWARF_CONTROL_SUBPAGE         = 'cs'
 CMD_DWARF_PAGES_AVAILABLE         = 'pa'
+CMD_DWARF_BUILDER_PLUGINS         = 'bp'
+CMD_DWARF_BUILDER_CONTROLS        = 'bc'
+CMD_DWARF_BUILDER_CONTROL_SET     = 'bcs'
+CMD_DWARF_BUILDER_CONTROL_PAGE    = 'bncp'
+CMD_DWARF_LOG                     = 'log'
 
 BANK_FUNC_NONE            = 0
 BANK_FUNC_TRUE_BYPASS     = 1
@@ -475,6 +485,16 @@ def cmd_to_str(cmd):
         return "CMD_DWARF_CONTROL_SUBPAGE"
     if cmd == "pa":
         return "CMD_DWARF_PAGES_AVAILABLE"
+    if cmd == "bp":
+        return "CMD_DWARF_BUILDER_PLUGINS"
+    if cmd == "bc":
+        return "CMD_DWARF_BUILDER_CONTROLS"
+    if cmd == "bcs":
+        return "CMD_DWARF_BUILDER_CONTROL_SET"
+    if cmd == 'bncp':
+        return "CMD_DWARF_BUILDER_CONTROL_PAGE"
+    if cmd == "log":
+        return "CMD_DWARF_LOG"
     return "unknown"
 
 def menu_item_id_to_str(idx):
