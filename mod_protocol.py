@@ -98,6 +98,7 @@ CMD_ARGS = {
         'bc': [int,int],
         'n': [int],
         'si': [int,int,int],
+        'ncp': [int,int], # Backwards compat for Duo and Duo X
     },
     'DUOX': {
         'boot': [int,int,str,],
