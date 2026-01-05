@@ -318,6 +318,12 @@ Almost all menu items are also setable via the MENU_ITEM_CHANGE command, but som
 //HOST action: -
 #define CMD_RESET_EEPROM              "reset_eeprom"
 
+// change audio frame size <new_size>
+//response: `r 0`
+//HMI action: -
+//HOST action: current audio frame size
+#define CMD_AUDIO_FRAME_SIZE          "afs %i"
+
 /*
 ********************************
     Duo Specific commands
