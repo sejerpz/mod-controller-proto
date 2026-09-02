@@ -179,6 +179,23 @@
 //HOST action: -
 #define CMD_PEDALBOARD_CLEAR          "pcl"
 
+// pedalboard_loading_begin / pedalboard_loading_end
+// The two ends of a pedalboard being loaded, whoever asked for it -- the web UI, the
+// footswitches, a bank change or the boot. Not a bracket around CMD_PEDALBOARD_LOAD, which
+// is the HMI asking for one: these are the host saying one is under way, from any source. Everything between them is a board in pieces:
+// plugins arriving one at a time, cables and addressings following. Anything on the HMI
+// that is a view onto the board has to stand down for the duration, and anything that
+// wants to say so to the user has its two edges here.
+//response: `r 0`
+//HMI action: leaves the builder, which is a view onto the board being replaced
+//HOST action: -
+#define CMD_PEDALBOARD_LOADING_BEGIN     "plb"
+
+//response: `r 0`
+//HMI action: -
+//HOST action: -
+#define CMD_PEDALBOARD_LOADING_END       "ple"
+
 // pedalboard delete <bank_uid> <pb_index>
 //response: -
 //HMI action: -
@@ -422,11 +439,6 @@ Almost all menu items are also setable via the MENU_ITEM_CHANGE command, but som
 //HOST action: -
 #define CMD_DWARF_PAGES_AVAILABLE     "pa %i %i %i %i %i %i %i %i"
 
-// builder pedalboard plugins <up/down page> <current page index>
-//response: `new plugins list, with updated items`
-//HMI action: -
-//HOST action:  returns a new page of pedalboard plugins
-#define CMD_DWARF_BUILDER_PLUGINS           "bp %i %i"
 
 // builder get # control from start to count 
 // <plugin_instance_id>: instance id of the plugin in the pedalboard
@@ -435,13 +447,13 @@ Almost all menu items are also setable via the MENU_ITEM_CHANGE command, but som
 // response: `r 1 <number of controls>`
 //HMI action: -
 //HOST action: sends back a control_add command with new control data
-#define CMD_DWARF_BUILDER_CONTROLS      "bc %s %i %i"
+#define CMD_BUILDER_CONTROL_LIST      "bctl %s %i %i"
 
 // control_set <hw_id><value>
 //response: `r 0`
 //HMI action: sends assigned control data
 //HOST action: sends assigned control data
-#define CMD_DWARF_BUILDER_CONTROL_SET        "bcs %i %f"
+#define CMD_BUILDER_CONTROL_SET        "bcts %i %f"
 
 
 // next_control_page <hw_id> <prop bitmask> <current page index id>
@@ -449,7 +461,200 @@ Almost all menu items are also setable via the MENU_ITEM_CHANGE command, but som
 //HMI action: get next control page data (e.g. options or presets)
 //HOST action: sends aa list of options relevant to the current page index and
 //             and the prop bitmask (e.g. page next / page prev)
-#define CMD_DWARF_BUILDER_CONTROL_PAGE        "bncp %i %i %i"
+#define CMD_BUILDER_CONTROL_PAGE        "bctp %i %i %i"
+
+
+// builder pedalboard minimap <props bitmask> <focus node id>
+// <props bitmask>: FLAG_PAGINATION_INITIAL_REQ asks for the default window and ignores <focus node id>
+// <focus node id>: the node the window is centred on, as numbered by the previous display list
+//response: `r 1 <display list>`
+//HMI action: parses the display list and draws the pedalboard graph
+//HOST action: sends back the display list for the window around <focus node id>
+#define CMD_BUILDER_PLUGIN_MAP        "bplm %i %i"
+
+
+// builder connections of one box <node id> <signal type bitmask>
+// <node id>: as numbered by the display list; <bitmask>: MINIMAP_AUDIO|MIDI|CV, 0 for all
+// A line is one connection between two boxes and not one cable: a stereo pair is one line.
+// Each line ends with the cables it stands for, as pairs of port names, feeding end first.
+// CMD_BUILDER_CONNECTION_TARGETS and CMD_BUILDER_CONNECTION_PORTS answer in the same shape with a
+// count of zero, so one parser on the HMI reads all three.
+// response: `r 1 <count> [<i|o> <other node id> <type bitmask> <label> <pair count>
+//                         [<source port> <sink port>] * pair count] * count`
+//           `i` is a cable into this box, `o` one out of it
+//HMI action: fills the connection menu of the selected box
+//HOST action: -
+#define CMD_BUILDER_CONNECTION_LIST        "bcnl %i %i"
+
+// builder drop the cables between two boxes <from node id> <to node id> <signal type bitmask>
+// One line of the picture can stand for several cables -- a stereo pair is one line -- and
+// all of them go.
+// response: `r 1 <number of cables dropped>`
+//HMI action: -
+//HOST action: disconnects the ports and tells the web UI
+#define CMD_BUILDER_CONNECTION_DELETE        "bcnd %i %i %i"
+
+
+// builder boxes one of our ports could meet <node id> <bitmask> <want their outputs>
+// The side is the caller's: our input wants somebody's output, our output wants somebody's
+// input, and the device knows which because it picked one of our ports first.
+// response: same shape as CMD_BUILDER_CONNECTION_LIST, so the HMI reads it with the
+//           same parser: `r 1 <count> [<i|o> <other node id> <type bitmask> <label>] * count`
+//           `i` is a box that could feed this one, `o` one this one could feed
+//HMI action: fills the target list of "New connection..."
+//HOST action: -
+#define CMD_BUILDER_CONNECTION_TARGETS        "bcnt %i %i %i"
+
+// builder ports of one box <node id> <bitmask> <side: 0 inputs, 1 outputs, 2 both>
+// Both puts the inputs first, and the direction letter of each entry says which side
+// it came from -- that is how the device learns which way the cable will run.
+// response: same shape as CMD_BUILDER_CONNECTION_LIST, so the HMI reads it with the same
+//           parser: `r 1 <count> [<i|o> <port index> <type bitmask> <label>] * count`
+//           the index is the position in this very list, and is what CMD_BUILDER_CONNECTION_ADD
+//           takes back
+//HMI action: fills the port list, once a target box has been picked
+//HOST action: -
+#define CMD_BUILDER_CONNECTION_PORTS        "bcnp %i %i %i"
+
+// builder wire one port to another
+// <from node id> <from port index> <to node id> <to port index> <signal type bitmask>
+// A port index of -1 leaves that end to the host, which takes the least used port of the
+// right type -- so wiring a stereo box twice fills its two sides rather than doubling one.
+// response: `r 1 <number of cables made>`
+//HMI action: -
+//HOST action: connects the ports and tells the web UI
+#define CMD_BUILDER_CONNECTION_ADD        "bcna %i %i %i %i %i"
+
+
+// builder plugin categories <signal type bitmask, 0 for all>
+// Favourites and All come first, then the LV2 categories; an empty one is left out.
+// response: `r 1 <count> [<index> <label>] * count`
+//HMI action: fills the left column of the Add screen
+//HOST action: -
+#define CMD_BUILDER_CATALOG_CATEGORIES        "bcac %i"
+
+// builder plugins of one category <category index> <signal type bitmask> <first wanted>
+// The category index is the position in the list CMD_BUILDER_CATALOG_CATEGORIES just sent.
+// A category can hold hundreds of plugins and the HMI has room for a few dozen, so it asks
+// for a window and slides it as the user scrolls.
+// response: `r 1 <total> <first> <count> [<index> <label>] * count`, indexes absolute
+//HMI action: fills the right column of the Add screen
+//HOST action: -
+#define CMD_BUILDER_CATALOG_LIST        "bcal %i %i %i"
+
+// builder add a plugin to the pedalboard <category index> <plugin index> <signal type bitmask>
+// Both indexes are positions in the lists just sent, so the device never carries a URI.
+// response: `r 1 <node id of the new box>`, or `r 1 -1` when it could not be added
+//HMI action: refetches the graph focused on the new box
+//HOST action: instantiates the plugin and tells the web UI
+#define CMD_BUILDER_PLUGIN_ADD        "bpla %i %i %i %i"
+
+
+// builder first letters of a category <category index> <signal type bitmask>
+// Holding the plugin encoder down scrubs by letter instead of by row, which turns a list
+// of hundreds into one of twenty-odd. The index is where that letter starts, absolute,
+// the same numbering CMD_BUILDER_CATALOG_LIST uses.
+// response: `r 1 <count> [<index> <letter>] * count`
+//HMI action: fills the scrub overlay
+//HOST action: -
+#define CMD_BUILDER_CATALOG_INITIALS        "bcan %i %i"
+
+// builder plugin info <category index> <plugin index> <signal type bitmask>
+// The two positions are the ones CMD_BUILDER_PLUGIN_ADD would add, so the overlay is about
+// the row under the cursor without the HMI having to name it. The description arrives one
+// word to a token: a word holds no space, so nothing has to be escaped and the HMI wraps
+// it to whatever width the panel has left.
+// response: `r 1 <name> <brand> <category> <audio in> <audio out> <midi in> <midi out>
+//            <cv in> <cv out> <word count> [<word>] * word count`, or `r 1 -1`
+//HMI action: opens the info overlay
+//HOST action: -
+#define CMD_BUILDER_CATALOG_INFO        "bcai %i %i %i"
+
+// builder remove plugin <node id>
+// Takes the box off the board with every cable on it. Only a plugin: the capture and
+// playback boxes are part of the picture and not part of the pedalboard.
+// response: `r 1 1` when it is gone, `r 1 0` when it is not
+//HMI action: refetches the graph around a neighbour
+//HOST action: removes the instance and tells the web UI
+#define CMD_BUILDER_PLUGIN_DELETE        "bpld %i"
+
+// builder toggle a plugin <node id>
+// Turns the box on the board off, or back on. The answer is the state it lands in, so the
+// HMI can redraw its own picture without asking for the graph again -- and it is sent
+// before the change is made, because a bypass the HMI is addressed to sends it commands of
+// its own and it is spinning on this reply while it waits.
+// response: `r 1 <1 bypassed, 0 not>`, or `r 1 -1` when there is no such plugin
+//HMI action: redraws the box, dashed when bypassed
+//HOST action: bypasses the plugin and tells the web UI
+#define CMD_BUILDER_PLUGIN_BYPASS        "bplb %i"
+
+// builder watch the board <1 on, 0 off>
+// The HMI says when it is looking at the graph, so the host only watches the board while
+// somebody is there to be told. Sent on entering the builder and again on leaving it, and
+// leaving is also what a pedalboard load causes -- so a load never notifies.
+// On enabling, the host takes note of the board as it stands and says nothing: the HMI has
+// just fetched it.
+// response: `r 0`
+//HMI action: -
+//HOST action: starts or stops watching the board for changes
+#define CMD_BUILDER_PLUGIN_NOTIFY        "bpln %i"
+
+// builder the board has changed
+// Host to HMI, the only one in this family that goes that way. Sent when the board changed
+// under the HMI -- edited from the web UI, most of the time -- while the watch above is on.
+// Carries nothing: several of them collapse into one refetch anyway.
+// response: `r 0`
+//HMI action: refetches the graph, outside the callback, when it is next idle
+//HOST action: -
+#define CMD_BUILDER_PLUGIN_UPDATED        "bplu"
+
+// builder actuators
+// Every slot on the panel: each knob once per sub-page it turns over in, then the
+// footswitches, which do not turn over. Which actuator and which sub-page a position is,
+// is the host's business -- the HMI picks a row and hands the row back.
+// response: `r 1 <count> [<label>] * count`
+//HMI action: fills the second column
+//HOST action: -
+#define CMD_BUILDER_BINDING_ACTUATORS        "bbnal"
+
+// builder bindable parameters <node id> <first> <count>
+// The control ports of one box, bypass first. Windowed like the plugin catalogue, so the
+// total comes back with the slice and the HMI slides it as the cursor walks.
+// response: `r 1 <total> <first> <count> [<label>] * count`
+//HMI action: fills the first column
+//HOST action: -
+#define CMD_BUILDER_BINDING_PARAMS        "bbnp %i %i %i"
+
+// builder bindings on a page <page>
+// Which slots already carry an addressing on that page, so the HMI can mark them and
+// offer DEL. A page and a row of the actuator list together are one slot, and a slot
+// holds one addressing.
+// response: `r 1 <count> [<actuator index> <label>] * count`
+//HMI action: marks the second column
+//HOST action: -
+#define CMD_BUILDER_BINDING_LIST        "bbnl %i"
+
+// builder bind <node id> <parameter index> <page> <actuator index>
+// The host answers BEFORE it starts, and that ordering matters: making an addressing sends
+// the HMI commands of its own -- control_add, and set_available_pages -- each waiting for
+// the HMI to answer, while the HMI is spinning on this reply and answers nothing. The link
+// is a queue, so the reply has to go into it first. The answer therefore cannot say whether
+// it worked; the HMI marks the slot it just filled and finds out at the next read if not.
+// The second number is the slot the parameter came off: it holds one addressing, so
+// binding it somewhere else takes it off wherever it was, and the mark there goes with it.
+// -1 when it was on nothing, or on another page, which the HMI reads afresh when it goes
+// there.
+// response: `r 1 <1 accepted, 0 no such slot or parameter> <freed slot index, or -1>`
+//HMI action: marks the slot in the second column and clears the freed one
+//HOST action: addresses the parameter and tells the web UI and the panel
+#define CMD_BUILDER_BINDING_ADD        "bbna %i %i %i %i"
+
+// builder unbind <page> <actuator index>
+// Answers before it starts, for the same reason bind does.
+// response: `r 1 1` accepted, `r 1 0` when the slot holds nothing
+//HMI action: clears the slot in the second column
+//HOST action: unaddresses whatever held the slot and tells the web UI and the panel
+#define CMD_BUILDER_BINDING_DELETE        "bbnd %i %i"
 
 
 /*
@@ -706,9 +911,9 @@ Almost all menu items are also setable via the MENU_ITEM_CHANGE command, but som
 ********************************
 */
 
-#define COMMAND_COUNT_DUO   92
-#define COMMAND_COUNT_DUOX  94
-#define COMMAND_COUNT_DWARF 89
+#define COMMAND_COUNT_DUO   118
+#define COMMAND_COUNT_DUOX  120
+#define COMMAND_COUNT_DWARF 115
 
 /*
 ********************************

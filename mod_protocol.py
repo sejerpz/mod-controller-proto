@@ -117,6 +117,16 @@ CMD_ARGS = {
         'bc': [int,int,int],
         'bcs': [int, float],
         'bncp': [int,int,int],
+        'bm': [int,int],
+        'bcn': [int,int],
+        'bdx': [int,int,int],
+        'bct': [int,int,int],
+        'bpt': [int,int,int],
+        'bcx': [int,int,int,int,int],
+        'bpg': [int],
+        'bpl': [int,int,int],
+        'bpa': [int,int,int],
+        'bpn': [int,int],
         'log': [str]
     },
 }
@@ -224,9 +234,19 @@ CMD_DUOX_EXP_OVERCURRENT          = 'exp_overcurrent'
 CMD_DWARF_CONTROL_SUBPAGE         = 'cs'
 CMD_DWARF_PAGES_AVAILABLE         = 'pa'
 CMD_DWARF_BUILDER_PLUGINS         = 'bp'
-CMD_DWARF_BUILDER_CONTROLS        = 'bc'
+CMD_DWARF_BUILDER_CONTROLS        = 'bcl'
 CMD_DWARF_BUILDER_CONTROL_SET     = 'bcs'
 CMD_DWARF_BUILDER_CONTROL_PAGE    = 'bncp'
+CMD_DWARF_BUILDER_MINIMAP         = 'bm'
+CMD_DWARF_BUILDER_CONNECTIONS     = 'bcn'
+CMD_DWARF_BUILDER_DISCONNECT      = 'bdx'
+CMD_DWARF_BUILDER_TARGETS         = 'bct'
+CMD_DWARF_BUILDER_PORTS           = 'bpt'
+CMD_DWARF_BUILDER_CONNECT         = 'bcx'
+CMD_DWARF_BUILDER_CATEGORIES      = 'bpg'
+CMD_DWARF_BUILDER_CATALOG         = 'bpl'
+CMD_DWARF_BUILDER_ADD             = 'bpa'
+CMD_DWARF_BUILDER_INITIALS        = 'bpn'
 CMD_DWARF_LOG                     = 'log'
 
 BANK_FUNC_NONE            = 0
@@ -492,12 +512,32 @@ def cmd_to_str(cmd):
         return "CMD_DWARF_PAGES_AVAILABLE"
     if cmd == "bp":
         return "CMD_DWARF_BUILDER_PLUGINS"
-    if cmd == "bc":
+    if cmd == "bcl":
         return "CMD_DWARF_BUILDER_CONTROLS"
     if cmd == "bcs":
         return "CMD_DWARF_BUILDER_CONTROL_SET"
     if cmd == 'bncp':
         return "CMD_DWARF_BUILDER_CONTROL_PAGE"
+    if cmd == "bm":
+        return "CMD_DWARF_BUILDER_MINIMAP"
+    if cmd == "bcn":
+        return "CMD_DWARF_BUILDER_CONNECTIONS"
+    if cmd == "bdx":
+        return "CMD_DWARF_BUILDER_DISCONNECT"
+    if cmd == "bct":
+        return "CMD_DWARF_BUILDER_TARGETS"
+    if cmd == "bpt":
+        return "CMD_DWARF_BUILDER_PORTS"
+    if cmd == "bcx":
+        return "CMD_DWARF_BUILDER_CONNECT"
+    if cmd == "bpg":
+        return "CMD_DWARF_BUILDER_CATEGORIES"
+    if cmd == "bpl":
+        return "CMD_DWARF_BUILDER_CATALOG"
+    if cmd == "bpa":
+        return "CMD_DWARF_BUILDER_ADD"
+    if cmd == "bpn":
+        return "CMD_DWARF_BUILDER_INITIALS"
     if cmd == "log":
         return "CMD_DWARF_LOG"
     return "unknown"
