@@ -179,6 +179,12 @@
 //HOST action: -
 #define CMD_PEDALBOARD_CLEAR          "pcl"
 
+// pedalboard_new
+//response: `r 0`
+//HMI action: -
+//HOST action: replaces the current pedalboard with a new empty one, like "New pedalboard" in the web-ui
+#define CMD_PEDALBOARD_NEW            "pnew"
+
 // pedalboard_loading_begin / pedalboard_loading_end
 // The two ends of a pedalboard being loaded, whoever asked for it -- the web UI, the
 // footswitches, a bank change or the boot. Not a bracket around CMD_PEDALBOARD_LOAD, which
@@ -911,9 +917,9 @@ Almost all menu items are also setable via the MENU_ITEM_CHANGE command, but som
 ********************************
 */
 
-#define COMMAND_COUNT_DUO   118
-#define COMMAND_COUNT_DUOX  120
-#define COMMAND_COUNT_DWARF 115
+#define COMMAND_COUNT_DUO   119
+#define COMMAND_COUNT_DUOX  121
+#define COMMAND_COUNT_DWARF 116
 
 /*
 ********************************
