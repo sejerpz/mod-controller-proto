@@ -478,6 +478,16 @@ Almost all menu items are also setable via the MENU_ITEM_CHANGE command, but som
 //HOST action: sends back the display list for the window around <focus node id>
 #define CMD_BUILDER_PLUGIN_MAP        "bplm %i %i"
 
+// builder pedalboard list view <first wanted> <focus node id>
+// Every plugin on the board by name, alphabetically, a window at a time: the display list only
+// holds the boxes around one, so a list made from it ends at the edge of that window. The
+// hardware boxes are left out; the connection picker offers them where they are destinations.
+// <first wanted>: absolute position of the first row; negative centres the window on <focus node id>
+// response: `r 1 <total> <first> <position of focus or -1> <count> [<node id> <kind> <title>] * count`
+//HMI action: fills the list view of the pedalboard
+//HOST action: -
+#define CMD_BUILDER_PLUGIN_LIST        "bpll %i %i"
+
 
 // builder connections of one box <node id> <signal type bitmask>
 // <node id>: as numbered by the display list; <bitmask>: MINIMAP_AUDIO|MIDI|CV, 0 for all
