@@ -50,6 +50,22 @@
 //HOST action: -
 #define CMD_GLCD_DRAW                 "glcd_draw %i %i %i %s"
 
+// widget area add <page> <subpage> <area_id> <x_pos> <y_pos> <width> <height>
+// A plugin widget takes the display area at <x_pos> <y_pos> <width> <height>, in display coordinates,
+// on <page> and <subpage>; <subpage> -1 means every subpage of the page.
+// The HMI draws nothing of its own there: the area shows only what system sends for <area_id>
+// with sys_wbm / sys_wcl, and is blank until then. <area_id> must be unique among the added areas.
+//response: `r 0`
+//HMI action: stores the area, and blanks it if it is on screen
+//HOST action: -
+#define CMD_WIDGET_AREA_ADD           "wa_add %i %i %i %i %i %i %i"
+
+// widget area remove <area_id>, or -1 to remove them all
+//response: `r 0`
+//HMI action: gives the area back to the default drawing
+//HOST action: -
+#define CMD_WIDGET_AREA_REMOVE        "wa_rm %i"
+
 // ui_con
 //response: `r 0`
 //HMI action: now aware the web-ui is connected
@@ -921,15 +937,33 @@ Almost all menu items are also setable via the MENU_ITEM_CHANGE command, but som
 //HOST action: -
 #define CMD_SYS_SUBPAGE_CHANGE          "sys_spc %02x %i"
 
+// widget bitmap <area_id> <x> <y> <width> <height> <rows>
+// Replaces the pixels of the rectangle <x> <y> <width> <height>, in coordinates of the widget area
+// (origin at its top-left corner), clipped to the area.
+// <rows>: hex string, <height> rows of (<width> + 7) / 8 bytes each, top to bottom; the most significant
+// bit of the first byte of a row is the pixel at <x>, a set bit is a lit pixel.
+// The whole message must fit the 2 hex digits of data length, so senders split tall bitmaps in bands.
+//response: `r 0`
+//HMI action: draws into the widget area, if it is on screen
+//HOST action: -
+#define CMD_SYS_WIDGET_BITMAP           "sys_wbm %02x %i %i %i %i %i %s"
+
+// widget clear <area_id> <x> <y> <width> <height>
+// Turns off every pixel of the rectangle, in coordinates of the widget area, clipped to the area.
+//response: `r 0`
+//HMI action: clears part of the widget area, if it is on screen
+//HOST action: -
+#define CMD_SYS_WIDGET_CLEAR            "sys_wcl %02x %i %i %i %i %i"
+
 /*
 ********************************
     Command count per device
 ********************************
 */
 
-#define COMMAND_COUNT_DUO   119
-#define COMMAND_COUNT_DUOX  121
-#define COMMAND_COUNT_DWARF 116
+#define COMMAND_COUNT_DUO   124
+#define COMMAND_COUNT_DUOX  126
+#define COMMAND_COUNT_DWARF 121
 
 /*
 ********************************
