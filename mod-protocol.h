@@ -347,6 +347,12 @@ Almost all menu items are also setable via the MENU_ITEM_CHANGE command, but som
 //HOST action: current audio frame size
 #define CMD_AUDIO_FRAME_SIZE          "afs %i"
 
+// web interface configuration <0 = query | 1 = back to the default interface>
+//response: `r 0 <1|2>` to the query, 1 = the default interface is active, 2 = another one; `r 0` to the reset
+//HMI action: -
+//HOST action: answers, or switches back to the default interface and restarts the web interface
+#define CMD_UI_CONFIG                 "uic %i"
+
 /*
 ********************************
     Duo Specific commands
